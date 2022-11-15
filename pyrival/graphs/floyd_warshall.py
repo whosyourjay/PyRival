@@ -7,11 +7,16 @@ def floyd_warshall(n, edges):
         pred[u][v] = u
 
     for k in range(n):
+        dist_k = dist[k]
+        pred_k = pred[k]
         for i in range(n):
+            dist_i = dist[i]
+            dist_i_k = dist_i[k]
+            pred_i = pred[i]
             for j in range(n):
-                if dist[i][k] + dist[k][j] < dist[i][j]:
-                    dist[i][j] = dist[i][k] + dist[k][j]
-                    pred[i][j] = pred[k][j]
+                if dist_i[k] + dist_k[j] < dist_i[j]:
+                    dist_i[j] = dist_i_k + dist_k[j]
+                    pred_i[j] = pred_k[j]
     """Sanity Check
     for u, v, d in edges:
         if dist[u] + d < dist[v]:
