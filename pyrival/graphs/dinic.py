@@ -8,47 +8,47 @@ class Dinic:
         self.q = [0] * n
         self.adj = [[] for _ in range(n)]
 
-    def add_edge(self, a, b, c, rcap=0):
-        self.adj[a].append([b, len(self.adj[b]), c, 0])
+    def add_edge(self, a, b, cap, rcap=0):
+        self.adj[a].append([b, len(self.adj[b]), cap, 0])
         self.adj[b].append([a, len(self.adj[a]) - 1, rcap, 0])
 
-    def dfs(self, v, t, f):
-        if v == t or not f:
-            return f
+    def dfs(self, vert, targ, limit):
+        if vert == targ or not limit:
+            return limit
 
-        for i in range(self.ptr[v], len(self.adj[v])):
-            e = self.adj[v][i]
-            if self.lvl[e[0]] == self.lvl[v] + 1:
-                p = self.dfs(e[0], t, min(f, e[2] - e[3]))
-                if p:
-                    self.adj[v][i][3] += p
-                    self.adj[e[0]][e[1]][3] -= p
-                    return p
-            self.ptr[v] += 1
+        for pos in range(self.ptr[vert], len(self.adj[vert])):
+            nei, pair, cap, use = self.adj[vert][pos]
+            if self.lvl[nei] == self.lvl[vert] + 1:
+                aug = self.dfs(nei, targ, min(limit, cap - use))
+                if aug:
+                    self.adj[vert][pos][3] += aug
+                    self.adj[nei][pair][3] -= aug
+                    return aug
+            self.ptr[vert] += 1
 
         return 0
 
-    def calc(self, s, t):
-        flow, self.q[0] = 0, s
+    def calc(self, start, targ):
+        flow, self.q[0] = 0, start
         for l in range(31):  # l = 30 maybe faster for random data
             while True:
                 self.lvl, self.ptr = [0] * len(self.q), [0] * len(self.q)
-                qi, qe, self.lvl[s] = 0, 1, 1
-                while qi < qe and not self.lvl[t]:
-                    v = self.q[qi]
+                qi, qe, self.lvl[start] = 0, 1, 1
+                while qi < qe and not self.lvl[targ]:
+                    vert = self.q[qi]
                     qi += 1
-                    for e in self.adj[v]:
-                        if not self.lvl[e[0]] and (e[2] - e[3]) >> (30 - l):
-                            self.q[qe] = e[0]
+                    for nei, pair, cap, use in self.adj[vert]:
+                        if not self.lvl[nei] and (cap - use) >> (30 - l):
+                            self.q[qe] = nei
                             qe += 1
-                            self.lvl[e[0]] = self.lvl[v] + 1
+                            self.lvl[nei] = self.lvl[vert] + 1
 
-                p = self.dfs(s, t, INF)
-                while p:
-                    flow += p
-                    p = self.dfs(s, t, INF)
+                aug = self.dfs(start, targ, INF)
+                while aug:
+                    flow += aug
+                    aug = self.dfs(start, targ, INF)
 
-                if not self.lvl[t]:
+                if not self.lvl[targ]:
                     break
 
         return flow
